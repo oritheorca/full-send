@@ -1,0 +1,1195 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<meta name="apple-mobile-web-app-capable" content="yes" />
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+<title>Full Send</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@500;600;700&family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  *, *::before, *::after { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; height: 100%; background: #15151a; overflow: hidden; }
+  body { font-family: -apple-system, system-ui, sans-serif; }
+  button { font: inherit; -webkit-user-select: none; user-select: none; }
+  input { -webkit-user-select: text; user-select: text; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+  #root { height: 100%; display: flex; justify-content: center; align-items: stretch; background: #15151a; }
+
+  @keyframes itEnterRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes itExitLeft   { from { transform: translateX(0); filter: brightness(1); } to { transform: translateX(-26%); filter: brightness(0.72); } }
+  @keyframes itEnterLeft  { from { transform: translateX(-26%); filter: brightness(0.72); } to { transform: translateX(0); filter: brightness(1); } }
+  @keyframes itExitRight  { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+  @keyframes itGhostSwipe {
+    0%   { transform: translateX(10px);  opacity: 0; }
+    12%  { opacity: 1; }
+    46%  { transform: translateX(-66px); }
+    62%  { transform: translateX(-66px); opacity: 1; }
+    80%  { opacity: 0; }
+    100% { transform: translateX(10px);  opacity: 0; }
+  }
+  @keyframes itGhostDrag {
+    0%   { transform: translateY(-26px); opacity: 0; }
+    14%  { opacity: 1; }
+    50%  { transform: translateY(26px); }
+    66%  { transform: translateY(26px);  opacity: 1; }
+    84%  { opacity: 0; }
+    100% { transform: translateY(-26px); opacity: 0; }
+  }
+  @keyframes itGhostPulse {
+    0%, 100% { transform: scale(0.86); }
+    40%       { transform: scale(1.05); }
+  }
+  @keyframes itCoachIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+  @keyframes itRingPulse { 0% { transform: scale(1); } 35% { transform: scale(1.045); } 100% { transform: scale(1); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- ── themes ── -->
+<script>
+(function () {
+  const THEMES = {
+    sporty: {
+      id: 'sporty', name: 'Pace', tagline: 'Sporty & energetic', statusDark: false,
+      fontUI: '"Saira", -apple-system, system-ui, sans-serif',
+      fontDisplay: '"Saira Condensed", "Saira", sans-serif',
+      displayWeight: 700, displayTracking: '0.01em',
+      vars: {
+        '--bg': '#0C0F14', '--surface': '#161B22', '--surface-2': '#1F262F',
+        '--ink': '#FFFFFF', '--ink-muted': '#9AA4B2', '--ink-faint': '#5C6675',
+        '--accent': '#D6FB3D', '--accent-ink': '#0C0F14',
+        '--line': 'rgba(255,255,255,0.09)', '--line-strong': 'rgba(255,255,255,0.16)',
+        '--radius-card': '22px', '--radius-inner': '15px', '--radius-pill': '999px',
+        '--shadow-card': '0 1px 0 rgba(255,255,255,0.04)', '--shadow-float': '0 16px 40px rgba(0,0,0,0.5)',
+      },
+      labels: {
+        warmup:   { color: '#FFB020', on: '#241700' },
+        work:     { color: '#2FD86B', on: '#04230F' },
+        rest:     { color: '#FF4D4D', on: '#FFFFFF' },
+        cooldown: { color: '#3DA8FF', on: '#041629' },
+        custom:   { color: '#D6FB3D', on: '#0C0F14' },
+      },
+    },
+    poppy: {
+      id: 'poppy', name: 'Bounce', tagline: 'Playful & poppy', statusDark: true,
+      fontUI: '"Nunito", -apple-system, system-ui, sans-serif',
+      fontDisplay: '"Fredoka", "Nunito", sans-serif',
+      displayWeight: 600, displayTracking: '0',
+      vars: {
+        '--bg': '#FFF3E6', '--surface': '#FFFFFF', '--surface-2': '#FFE7D1',
+        '--ink': '#2B2540', '--ink-muted': '#857E96', '--ink-faint': '#BBB4C6',
+        '--accent': '#00C2A8', '--accent-ink': '#FFFFFF',
+        '--line': 'rgba(43,37,64,0.08)', '--line-strong': 'rgba(43,37,64,0.14)',
+        '--radius-card': '28px', '--radius-inner': '20px', '--radius-pill': '999px',
+        '--shadow-card': '0 10px 24px rgba(123,92,80,0.12)', '--shadow-float': '0 18px 44px rgba(123,92,80,0.22)',
+      },
+      labels: {
+        warmup:   { color: '#FFC23C', on: '#3A2700' },
+        work:     { color: '#34D17F', on: '#053D20' },
+        rest:     { color: '#FF5A52', on: '#FFFFFF' },
+        cooldown: { color: '#8E7CFF', on: '#FFFFFF' },
+        custom:   { color: '#00C2A8', on: '#FFFFFF' },
+      },
+    },
+    minimal: {
+      id: 'minimal', name: 'Mono', tagline: 'Premium minimal', statusDark: true,
+      fontUI: '"Space Grotesk", -apple-system, system-ui, sans-serif',
+      fontDisplay: '"Space Grotesk", -apple-system, sans-serif',
+      displayWeight: 500, displayTracking: '-0.02em',
+      vars: {
+        '--bg': '#F6F5F2', '--surface': '#FFFFFF', '--surface-2': '#EEECE6',
+        '--ink': '#16150F', '--ink-muted': '#6E6C63', '--ink-faint': '#A9A79D',
+        '--accent': '#16150F', '--accent-ink': '#FFFFFF',
+        '--line': 'rgba(22,21,15,0.10)', '--line-strong': 'rgba(22,21,15,0.18)',
+        '--radius-card': '16px', '--radius-inner': '11px', '--radius-pill': '999px',
+        '--shadow-card': '0 1px 2px rgba(22,21,15,0.05)', '--shadow-float': '0 16px 40px rgba(22,21,15,0.16)',
+      },
+      labels: {
+        warmup:   { color: '#C9923E', on: '#FFFFFF' },
+        work:     { color: '#3E9D5C', on: '#FFFFFF' },
+        rest:     { color: '#C8432F', on: '#FFFFFF' },
+        cooldown: { color: '#7E8A6B', on: '#FFFFFF' },
+        custom:   { color: '#16150F', on: '#FFFFFF' },
+      },
+    },
+  };
+
+  function labelIntent(label) {
+    const l = (label || '').toLowerCase();
+    if (l === 'warmup' || l === 'warm up') return 'warmup';
+    if (l === 'work') return 'work';
+    if (l === 'rest') return 'rest';
+    if (l === 'cooldown' || l === 'cool down') return 'cooldown';
+    return 'custom';
+  }
+  function labelColor(theme, label) {
+    return theme.labels[labelIntent(label)] || theme.labels.custom;
+  }
+  function segColor(theme, segType, label) {
+    if (segType === 'rest') return theme.labels.rest;
+    return labelColor(theme, label);
+  }
+  function styleVars(theme) { return { ...theme.vars }; }
+
+  window.IT_THEMES = THEMES;
+  window.IT_themeList = ['sporty', 'poppy', 'minimal'];
+  Object.assign(window, { labelIntent, labelColor, segColor, styleVars });
+})();
+</script>
+
+<!-- ── store ── -->
+<script>
+(function () {
+  const KEY = 'interval-timer:v1';
+  const uid = () => Math.random().toString(36).slice(2, 9);
+
+  function stage(label, workSec, restSec, rounds) {
+    return { id: uid(), label, workSec, restSec: restSec || 0, rounds: rounds || 1 };
+  }
+  function sampleData() {
+    return {
+      timers: [
+        { id: uid(), name: 'Tabata Classic', createdAt: Date.now() - 86400000 * 3,
+          stages: [stage('warmup', 180, 0, 1), stage('work', 20, 10, 8), stage('cooldown', 120, 0, 1)] },
+        { id: uid(), name: '', createdAt: Date.now() - 86400000,
+          stages: [stage('warmup', 120, 0, 1), stage('work', 45, 15, 6), stage('rest', 60, 0, 1), stage('Sprints', 30, 20, 5), stage('cooldown', 180, 0, 1)] },
+      ],
+      coachDone: false, homeCoachDone: false,
+      settings: { keepRunningInBackground: false, sound: true, haptics: true, flavor: 'sporty' },
+      counter: 2,
+    };
+  }
+  function load() {
+    try {
+      const raw = localStorage.getItem(KEY);
+      if (!raw) { const d = sampleData(); save(d); return d; }
+      const d = JSON.parse(raw);
+      if (!d.settings) d.settings = { keepRunningInBackground: false, sound: true, haptics: true, flavor: 'sporty' };
+      if (typeof d.settings.sound !== 'boolean') d.settings.sound = true;
+      if (typeof d.settings.haptics !== 'boolean') d.settings.haptics = true;
+      if (!d.settings.flavor) d.settings.flavor = 'sporty';
+      if (typeof d.counter !== 'number') d.counter = d.timers.length;
+      if (typeof d.homeCoachDone !== 'boolean') d.homeCoachDone = false;
+      return d;
+    } catch (e) { const d = sampleData(); save(d); return d; }
+  }
+  function save(d) { try { localStorage.setItem(KEY, JSON.stringify(d)); } catch (e) {} }
+  function reset() { const d = sampleData(); save(d); return d; }
+  function timerName(timer, index) { return (timer.name && timer.name.trim()) || `Timer ${index + 1}`; }
+  function totalSeconds(timer) { return timer.stages.reduce((sum, s) => sum + s.rounds * (s.workSec + s.restSec), 0); }
+  function buildSegments(timer) {
+    const segs = [];
+    timer.stages.forEach((s, si) => {
+      const intent = window.labelIntent(s.label);
+      for (let r = 0; r < s.rounds; r++) {
+        segs.push({ type: intent === 'rest' ? 'rest' : (intent === 'work' || intent === 'custom' ? 'work' : intent), intent, label: s.label, sec: s.workSec, stageIndex: si, round: r + 1, totalRounds: s.rounds, kind: 'main' });
+        if (s.restSec > 0) segs.push({ type: 'rest', intent: 'rest', label: 'Rest', sec: s.restSec, stageIndex: si, round: r + 1, totalRounds: s.rounds, kind: 'rest' });
+      }
+    });
+    return segs;
+  }
+  function fmtClock(sec) { sec = Math.max(0, Math.round(sec)); return `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`; }
+  function fmtDuration(sec) {
+    sec = Math.round(sec);
+    if (sec < 60) return `${sec} sec`;
+    const h = Math.floor(sec / 3600), m = Math.round((sec % 3600) / 60);
+    if (h > 0) return m > 0 ? `${h} hr ${m} min` : `${h} hr`;
+    return `${m} min`;
+  }
+  function labelText(label) {
+    const map = { warmup: 'Warmup', work: 'Work', rest: 'Rest', cooldown: 'Cooldown' };
+    return map[(label || '').toLowerCase()] || label || 'Stage';
+  }
+  window.IT_store = { load, save, reset, stage, uid, timerName, totalSeconds, buildSegments, fmtClock, fmtDuration, labelText };
+})();
+</script>
+
+<!-- ── React components ── -->
+<script type="text/babel">
+
+// ── Icons ──
+function Icon({ d, size = 24, sw = 2, fill = 'none', children, vb = 24, style }) {
+  return (
+    <svg width={size} height={size} viewBox={`0 0 ${vb} ${vb}`} fill={fill}
+         stroke={fill === 'none' ? 'currentColor' : 'none'} strokeWidth={sw}
+         strokeLinecap="round" strokeLinejoin="round" style={style}>
+      {d ? <path d={d} /> : children}
+    </svg>
+  );
+}
+const IconPlus     = (p) => <Icon {...p} d="M12 5v14M5 12h14" />;
+const IconPlay     = (p) => <Icon {...p} fill="currentColor" d="M7 4.5v15l13-7.5z" />;
+const IconPause    = (p) => <Icon {...p} fill="currentColor"><rect x="6" y="4.5" width="4" height="15" rx="1.2"/><rect x="14" y="4.5" width="4" height="15" rx="1.2"/></Icon>;
+const IconNext     = (p) => <Icon {...p} fill="currentColor"><path d="M6 5l10 7-10 7z"/><rect x="17" y="5" width="2.6" height="14" rx="1"/></Icon>;
+const IconPrev     = (p) => <Icon {...p} fill="currentColor"><path d="M18 5L8 12l10 7z"/><rect x="4.4" y="5" width="2.6" height="14" rx="1"/></Icon>;
+const IconClose    = (p) => <Icon {...p} d="M6 6l12 12M18 6L6 18" />;
+const IconChevL    = (p) => <Icon {...p} d="M15 5l-7 7 7 7" />;
+const IconTrash    = (p) => <Icon {...p}><path d="M4 7h16M9 7V5.5A1.5 1.5 0 0110.5 4h3A1.5 1.5 0 0115 5.5V7M6 7l1 12.5A1.5 1.5 0 008.5 21h7a1.5 1.5 0 001.5-1.5L18 7"/></Icon>;
+const IconGrip     = (p) => <Icon {...p} fill="currentColor" sw={0}><circle cx="9" cy="6" r="1.6"/><circle cx="15" cy="6" r="1.6"/><circle cx="9" cy="12" r="1.6"/><circle cx="15" cy="12" r="1.6"/><circle cx="9" cy="18" r="1.6"/><circle cx="15" cy="18" r="1.6"/></Icon>;
+const IconRepeat   = (p) => <Icon {...p}><path d="M4 9a5 5 0 015-5h7M4 9l3-3M4 9l3 3"/><path d="M20 15a5 5 0 01-5 5H8M20 15l-3 3M20 15l-3-3"/></Icon>;
+const IconReplay   = (p) => <Icon {...p} fill="currentColor" sw={0} d="M12 5V1L7 6l5 5V7c3.31 0 6 2.69 6 6s-2.69 6-6 6-6-2.69-6-6H4c0 4.42 3.58 8 8 8s8-3.58 8-8-3.58-8-8-8z" />;
+const IconGear     = (p) => <Icon {...p} fill="currentColor" sw={0} d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.488.488 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54A.484.484 0 0 0 13.45 2h-3.84c-.24 0-.44.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96c-.22-.08-.47 0-.59.22L1.74 8.47a.49.49 0 0 0 .12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.03.24.23.41.47.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32a.49.49 0 0 0-.12-.61l-2.01-1.58zM12 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z" />;
+const IconCheck    = (p) => <Icon {...p} d="M5 12.5l4.5 4.5L19 7" />;
+const IconBolt     = (p) => <Icon {...p} fill="currentColor" sw={0} d="M13 2L4 14h6l-1 8 9-12h-6z" />;
+const IconSound    = (p) => <Icon {...p}><path d="M4 9v6h4l5 4V5L8 9z"/><path d="M16.5 8.5a5 5 0 010 7M19 6a8 8 0 010 12"/></Icon>;
+
+// ── Ghost coachmarks ──
+function GhostTouch({ variant = 'swipe', tone = 'dark' }) {
+  const ring = tone === 'dark' ? 'rgba(20,20,24,0.30)' : 'rgba(255,255,255,0.55)';
+  const dot  = tone === 'dark' ? 'rgba(20,20,24,0.70)' : 'rgba(255,255,255,0.95)';
+  const anim = variant === 'drag' ? 'itGhostDrag' : 'itGhostSwipe';
+  return (
+    <div style={{ width: 50, height: 50, position: 'relative', animation: `${anim} 2.6s cubic-bezier(.5,0,.2,1) infinite` }}>
+      <div style={{ position: 'absolute', inset: 0, borderRadius: '50%', border: `2px solid ${ring}`, animation: 'itGhostPulse 2.6s ease-out infinite' }} />
+      <div style={{ position: 'absolute', top: '50%', left: '50%', width: 20, height: 20, marginLeft: -10, marginTop: -10, borderRadius: '50%', background: dot, boxShadow: `0 2px 8px ${tone === 'dark' ? 'rgba(0,0,0,0.2)' : 'rgba(0,0,0,0.35)'}` }} />
+    </div>
+  );
+}
+function Coach({ variant, text, tone = 'dark', style, onDismiss, align = 'center' }) {
+  return (
+    <div onPointerDown={onDismiss} style={{ position: 'absolute', zIndex: 40, pointerEvents: 'auto', display: 'flex', alignItems: 'center', justifyContent: align === 'right' ? 'flex-end' : 'center', gap: 12, padding: variant === 'drag' ? '0 8px 0 18px' : '0 18px', boxSizing: 'border-box', ...style }}>
+      <div style={{ background: tone === 'dark' ? 'rgba(20,20,24,0.92)' : 'rgba(255,255,255,0.96)', color: tone === 'dark' ? '#fff' : '#16150F', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14, letterSpacing: '0.01em', padding: '9px 15px', borderRadius: 999, boxShadow: '0 8px 24px rgba(0,0,0,0.28)', whiteSpace: 'nowrap', animation: 'itCoachIn 0.4s ease both' }}>{text}</div>
+      <GhostTouch variant={variant} tone={tone} />
+    </div>
+  );
+}
+
+// ── Shared UI ──
+const { useState: useStateUI, useEffect: useEffectUI, useRef: useRefUI } = React;
+
+function Sheet({ open, onClose, title, children, maxHeight = '88%' }) {
+  const [mounted, setMounted] = useStateUI(open);
+  const [shown, setShown] = useStateUI(false);
+  useEffectUI(() => {
+    if (open) { setMounted(true); const t = setTimeout(() => setShown(true), 10); return () => clearTimeout(t); }
+    else { setShown(false); const t = setTimeout(() => setMounted(false), 280); return () => clearTimeout(t); }
+  }, [open]);
+  if (!mounted) return null;
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: 60 }}>
+      <div onPointerDown={onClose} style={{ position: 'absolute', inset: 0, background: 'rgba(0,0,0,0.4)', opacity: shown ? 1 : 0, transition: 'opacity 0.28s ease', backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)' }} />
+      <div style={{ position: 'absolute', left: 0, right: 0, bottom: 0, background: 'var(--surface)', color: 'var(--ink)', borderTopLeftRadius: 28, borderTopRightRadius: 28, boxShadow: 'var(--shadow-float)', maxHeight, display: 'flex', flexDirection: 'column', transform: shown ? 'translateY(0)' : 'translateY(102%)', transition: 'transform 0.32s cubic-bezier(.32,.72,0,1)', paddingBottom: 30 }}>
+        <div style={{ display: 'flex', justifyContent: 'center', paddingTop: 10 }}>
+          <div style={{ width: 38, height: 5, borderRadius: 999, background: 'var(--line-strong)' }} />
+        </div>
+        {title && <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 21, color: 'var(--ink)', padding: '14px 22px 6px' }}>{title}</div>}
+        <div style={{ overflowY: 'auto', padding: '6px 22px 0' }}>{children}</div>
+      </div>
+    </div>
+  );
+}
+
+function Toggle({ on, onChange }) {
+  return (
+    <button onClick={() => onChange(!on)} style={{ width: 52, height: 32, borderRadius: 999, border: 'none', padding: 2, background: on ? 'var(--accent)' : 'var(--line-strong)', position: 'relative', cursor: 'pointer', flexShrink: 0, transition: 'background 0.22s ease' }}>
+      <span style={{ position: 'absolute', top: 2, left: on ? 22 : 2, width: 28, height: 28, borderRadius: '50%', background: '#fff', boxShadow: '0 1px 3px rgba(0,0,0,0.3)', transition: 'left 0.22s cubic-bezier(.32,.72,0,1)' }} />
+    </button>
+  );
+}
+
+function Stepper({ value, min = 0, max = 99, step = 1, onChange, suffix }) {
+  const dec = () => onChange(Math.max(min, value - step));
+  const inc = () => onChange(Math.min(max, value + step));
+  const btn = (label, fn, disabled) => (
+    <button onClick={fn} disabled={disabled} style={{ width: 46, height: 46, borderRadius: 14, border: 'none', cursor: disabled ? 'default' : 'pointer', background: 'var(--surface-2)', color: disabled ? 'var(--ink-faint)' : 'var(--ink)', fontSize: 24, fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'var(--font-ui)', lineHeight: 1 }}>{label}</button>
+  );
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14 }}>
+      {btn('−', dec, value <= min)}
+      <div style={{ minWidth: 64, textAlign: 'center', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 26, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums' }}>
+        {value}{suffix && <span style={{ fontSize: 30, fontWeight: 700, color: 'var(--ink-muted)', marginLeft: 4 }}>{suffix}</span>}
+      </div>
+      {btn('+', inc, value >= max)}
+    </div>
+  );
+}
+
+function PrimaryButton({ children, onClick, style, color = 'var(--accent)', ink = 'var(--accent-ink)', disabled }) {
+  return (
+    <button onClick={onClick} disabled={disabled} style={{ border: 'none', cursor: disabled ? 'default' : 'pointer', width: '100%', background: disabled ? 'var(--surface-2)' : color, color: disabled ? 'var(--ink-faint)' : ink, fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 17, padding: '17px 20px', borderRadius: 'var(--radius-pill)', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 9, letterSpacing: '0.01em', transition: 'transform 0.1s ease, opacity 0.2s', whiteSpace: 'nowrap', ...style }}
+      onPointerDown={(e) => { if (!disabled) e.currentTarget.style.transform = 'scale(0.97)'; }}
+      onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+      onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+    >{children}</button>
+  );
+}
+
+// ── SwipeRow ──
+function SwipeRow({ children, actions = [], radius = 'var(--radius-card)', onTap, openExternally, onOpenChange, disabled = false, shadow = 'none' }) {
+  const ACTION_W = 76;
+  const total = actions.length * ACTION_W;
+  const [x, setX] = React.useState(0);
+  const [dragging, setDragging] = React.useState(false);
+  const st = React.useRef({ x0: 0, y0: 0, startX: 0, axis: null, moved: false, id: null });
+
+  const open  = () => { setX(-total); onOpenChange && onOpenChange(true); };
+  const close = () => { setX(0);      onOpenChange && onOpenChange(false); };
+
+  const onDown = (e) => {
+    if (disabled || total === 0) return;
+    if (e.target.closest && e.target.closest('[data-no-swipe]')) return;
+    const p = e.touches ? e.touches[0] : e;
+    st.current = { x0: p.clientX, y0: p.clientY, startX: x, axis: null, moved: false, id: e.pointerId };
+  };
+  const onMove = (e) => {
+    if (disabled || total === 0 || st.current.id == null) return;
+    const p = e.touches ? e.touches[0] : e;
+    const dx = p.clientX - st.current.x0, dy = p.clientY - st.current.y0;
+    if (!st.current.axis) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      st.current.axis = Math.abs(dx) > Math.abs(dy) ? 'x' : 'y';
+      if (st.current.axis === 'x') { setDragging(true); e.currentTarget.setPointerCapture && e.currentTarget.setPointerCapture(e.pointerId); }
+    }
+    if (st.current.axis !== 'x') return;
+    st.current.moved = true;
+    let nx = st.current.startX + dx;
+    nx = Math.max(-total - 24, Math.min(0, nx));
+    setX(nx);
+  };
+  const onUp = () => {
+    if (st.current.id == null) return;
+    setDragging(false);
+    const wasX = st.current.axis === 'x', moved = st.current.moved;
+    st.current.id = null; st.current.axis = null;
+    if (!wasX) return;
+    if (!moved) return;
+    if (x < -total / 2) open(); else close();
+  };
+  const onClick = () => {
+    if (st.current.moved) { st.current.moved = false; return; }
+    if (x !== 0) { close(); return; }
+    onTap && onTap();
+  };
+
+  React.useEffect(() => { if (openExternally === false && x !== 0) setX(0); }, [openExternally]);
+
+  return (
+    <div style={{ position: 'relative', borderRadius: radius, boxShadow: shadow }}>
+      <div style={{ position: 'relative', borderRadius: radius, overflow: 'hidden' }}>
+        {total > 0 && (
+          <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, display: 'flex', justifyContent: 'flex-end', background: actions[0].color }}>
+            {actions.map((a, i) => (
+              <button key={i} onClick={() => { a.onClick && a.onClick(); close(); }} style={{ width: ACTION_W, border: 'none', cursor: 'pointer', background: a.color, color: a.ink || '#fff', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 5, fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12.5 }}>
+                {a.icon}{a.label}
+              </button>
+            ))}
+          </div>
+        )}
+        <div onPointerDown={onDown} onPointerMove={onMove} onPointerUp={onUp} onPointerCancel={onUp} onClick={onClick}
+          style={{ position: 'relative', transform: `translateX(${x}px)`, transition: dragging ? 'none' : 'transform 0.32s cubic-bezier(.32,.72,0,1)', touchAction: 'pan-y', cursor: onTap ? 'pointer' : 'default' }}>
+          {children}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+// ── Home Screen ──
+const S_hm = window.IT_store;
+
+function StageStrip({ timer, theme, height = 11 }) {
+  const segs = timer.stages.map(s => ({ t: Math.max(1, s.rounds * (s.workSec + s.restSec)), c: window.labelColor(theme, s.label).color }));
+  const total = segs.reduce((a, s) => a + s.t, 0) || 1;
+  return (
+    <div style={{ display: 'flex', gap: 3, height, width: '100%' }}>
+      {segs.map((s, i) => <div key={i} style={{ flexGrow: s.t, flexBasis: 6, minWidth: 6, background: s.c, borderRadius: 4, opacity: 0.92 }} />)}
+    </div>
+  );
+}
+
+function MetaPair({ value, label }) {
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: 1, whiteSpace: 'nowrap', flexShrink: 0 }}>
+      <span style={{ fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 19, color: 'var(--ink)', fontVariantNumeric: 'tabular-nums', lineHeight: 1 }}>{value}</span>
+      <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 11, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-faint)' }}>{label}</span>
+    </div>
+  );
+}
+
+function TimerCard({ timer, index, theme, onTap, onPlay, onDelete, disabled, dragging }) {
+  const name = S_hm.timerName(timer, index);
+  const total = S_hm.totalSeconds(timer);
+  const rounds = timer.stages.reduce((a, s) => a + s.rounds, 0);
+  return (
+    <SwipeRow onTap={onTap} disabled={disabled} shadow={dragging ? 'var(--shadow-float)' : 'var(--shadow-card)'}
+      actions={[{ label: 'Delete', color: '#FF3B30', ink: '#fff', icon: <IconTrash size={20} />, onClick: onDelete }]}>
+      <div style={{ background: 'var(--surface)', padding: '18px 20px', border: '1px solid var(--line)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 14 }}>
+          <div style={{ flex: 1, minWidth: 0, fontFamily: 'var(--font-display)', fontWeight: 'var(--dw)', fontSize: 25, color: 'var(--ink)', letterSpacing: 'var(--dt)', lineHeight: 1.08, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{name}</div>
+          <button data-no-swipe aria-label={`Start ${name}`}
+            onPointerDown={(e) => { e.stopPropagation(); e.currentTarget.style.transform = 'scale(0.9)'; }}
+            onPointerUp={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+            onPointerLeave={(e) => { e.currentTarget.style.transform = 'scale(1)'; }}
+            onClick={(e) => { e.stopPropagation(); onPlay && onPlay(); }}
+            style={{ width: 64, height: 64, borderRadius: '50%', border: 'none', cursor: 'pointer', background: 'var(--accent)', color: 'var(--accent-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, boxShadow: 'var(--shadow-card)', transition: 'transform 0.1s ease' }}>
+            <IconPlay size={30} />
+          </button>
+        </div>
+        <div style={{ display: 'flex', gap: 22, margin: '15px 0 16px' }}>
+          <MetaPair value={S_hm.fmtDuration(total)} label="Total" />
+          <MetaPair value={timer.stages.length} label="Stages" />
+          <MetaPair value={rounds} label="Rounds" />
+        </div>
+        <StageStrip timer={timer} theme={theme} />
+      </div>
+    </SwipeRow>
+  );
+}
+
+function SettingsSheet({ open, onClose, settings, onChange }) {
+  const Row = ({ title, sub, control }) => (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, padding: '15px 0', borderBottom: '1px solid var(--line)' }}>
+      <div style={{ flex: 1 }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, color: 'var(--ink)' }}>{title}</div>
+        {sub && <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 500, fontSize: 13, color: 'var(--ink-muted)', marginTop: 3, lineHeight: 1.35 }}>{sub}</div>}
+      </div>
+      {control}
+    </div>
+  );
+  const flavors = [{ id: 'sporty', name: 'Pace' }, { id: 'poppy', name: 'Bounce' }, { id: 'minimal', name: 'Mono' }];
+  return (
+    <Sheet open={open} onClose={onClose} title="Settings">
+      <Row title="Countdown beeps" sub="Audio cues on the last 3 seconds and at every stage change." control={<Toggle on={settings.sound} onChange={(v) => onChange('sound', v)} />} />
+      <Row title="Haptic feedback" sub="Buzz on stage changes and when a timer completes." control={<Toggle on={settings.haptics} onChange={(v) => onChange('haptics', v)} />} />
+      <Row title="Pause when you leave the app" sub="Timers only count down when the app is active." control={<Toggle on={!settings.keepRunningInBackground} onChange={(v) => onChange('keepRunningInBackground', !v)} />} />
+      <div style={{ padding: '15px 0', borderBottom: '1px solid var(--line)' }}>
+        <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, color: 'var(--ink)', marginBottom: 12 }}>Style</div>
+        <div style={{ display: 'flex', gap: 8 }}>
+          {flavors.map(f => (
+            <button key={f.id} onClick={() => onChange('flavor', f.id)} style={{ flex: 1, border: settings.flavor === f.id ? '2px solid var(--accent)' : '2px solid var(--line-strong)', background: settings.flavor === f.id ? 'var(--accent)' : 'var(--surface-2)', color: settings.flavor === f.id ? 'var(--accent-ink)' : 'var(--ink)', borderRadius: 12, padding: '10px 4px', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 13, cursor: 'pointer', transition: 'all 0.15s ease' }}>{f.name}</button>
+          ))}
+        </div>
+      </div>
+      <div style={{ height: 8 }} />
+    </Sheet>
+  );
+}
+
+function HomeScreen({ data, theme, onOpenTimer, onEditTimer, onNewTimer, onDeleteTimer, onReorderTimers, homeCoachDone, onHomeCoachDone, settings, onChangeSetting }) {
+  const [showSettings, setShowSettings] = React.useState(false);
+  const timers = data.timers;
+  const [drag, setDrag] = React.useState(null);
+  const dragRef = React.useRef({});
+  const STRIDE = React.useRef(0);
+  const lpRef = React.useRef(null);
+  const pressRef = React.useRef({});
+  const justDragged = React.useRef(false);
+  const [coachSeen, setCoachSeen] = React.useState(homeCoachDone);
+  const showCoach = !homeCoachDone && !coachSeen && timers.length >= 1;
+  const dismissCoach = () => { setCoachSeen(true); onHomeCoachDone && onHomeCoachDone(); };
+
+  const clearLP = () => { if (lpRef.current) { clearTimeout(lpRef.current); lpRef.current = null; } };
+  const removePressListeners = () => { document.removeEventListener('pointermove', onPressMove); document.removeEventListener('pointerup', onPressUp); document.removeEventListener('pointercancel', onPressUp); };
+  const onPressMove = (e) => { if (pressRef.current.started) return; const dx = e.clientX - pressRef.current.x0, dy = e.clientY - pressRef.current.y0; if (Math.abs(dx) > 9 || Math.abs(dy) > 9) { clearLP(); removePressListeners(); } };
+  const onPressUp = () => { clearLP(); removePressListeners(); };
+
+  const startDrag = (id, index) => {
+    removePressListeners(); pressRef.current.started = true; justDragged.current = true;
+    if (settings.haptics && navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+    const el = document.querySelector(`[data-home-row="${id}"]`);
+    const h = el ? el.getBoundingClientRect().height : 150;
+    STRIDE.current = h + 14;
+    dragRef.current = { id, from: index, y0: pressRef.current.y0 };
+    setDrag({ id, dy: 0, from: index });
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', onDragUp);
+    document.addEventListener('pointercancel', onDragUp);
+    if (showCoach) dismissCoach();
+  };
+  const onDragMove = (e) => { const dy = e.clientY - dragRef.current.y0; setDrag(d => d ? { ...d, dy } : d); };
+  const onDragUp = () => {
+    document.removeEventListener('pointermove', onDragMove);
+    document.removeEventListener('pointerup', onDragUp);
+    document.removeEventListener('pointercancel', onDragUp);
+    setDrag(d => {
+      if (!d) return null;
+      let target = d.from + Math.round(d.dy / (STRIDE.current || 150));
+      target = Math.max(0, Math.min(timers.length - 1, target));
+      if (target !== d.from) onReorderTimers(d.from, target);
+      return null;
+    });
+    setTimeout(() => { justDragged.current = false; }, 60);
+  };
+  const onCardDown = (e, id, index) => {
+    if (drag) return;
+    if (e.target.closest && e.target.closest('[data-no-swipe]')) return;
+    const p = e.touches ? e.touches[0] : e;
+    pressRef.current = { x0: p.clientX, y0: p.clientY, id, index, started: false };
+    clearLP();
+    lpRef.current = setTimeout(() => startDrag(id, index), 420);
+    document.addEventListener('pointermove', onPressMove);
+    document.addEventListener('pointerup', onPressUp);
+    document.addEventListener('pointercancel', onPressUp);
+  };
+  React.useEffect(() => () => { clearLP(); removePressListeners(); }, []);
+
+  const rowOffset = (index) => {
+    if (!drag) return 0;
+    const from = drag.from, stride = STRIDE.current || 150;
+    let target = from + Math.round(drag.dy / stride);
+    target = Math.max(0, Math.min(timers.length - 1, target));
+    if (index === from) return drag.dy;
+    if (from < target && index > from && index <= target) return -stride;
+    if (from > target && index < from && index >= target) return stride;
+    return 0;
+  };
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+      <div style={{ padding: '64px 22px 10px', flexShrink: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 9 }}>
+            <div style={{ width: 30, height: 30, borderRadius: 9, background: 'var(--accent)', color: 'var(--accent-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <IconBolt size={18} />
+            </div>
+            <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 15, letterSpacing: '0.02em', color: 'var(--ink-muted)', whiteSpace: 'nowrap' }}>Full Send</span>
+          </div>
+          <button onClick={() => setShowSettings(true)} style={{ width: 42, height: 42, borderRadius: '50%', border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', boxShadow: 'var(--shadow-card)' }}>
+            <IconGear size={21} />
+          </button>
+        </div>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '14px 22px 8px' }}>
+        {timers.length === 0 && (
+          <div style={{ textAlign: 'center', padding: '60px 20px', color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)' }}>
+            <div style={{ fontWeight: 700, fontSize: 18, color: 'var(--ink)', marginBottom: 6 }}>No timers yet</div>
+            <div style={{ fontSize: 14 }}>Tap "New Timer" to build your first interval.</div>
+          </div>
+        )}
+        {timers.map((t, i) => {
+          const off = rowOffset(i);
+          const isDragging = drag && drag.id === t.id;
+          return (
+            <div key={t.id} data-home-row={t.id} onPointerDown={(e) => onCardDown(e, t.id, i)} style={{ position: 'relative', marginBottom: 14, transform: `translateY(${off}px)`, transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(.32,.72,0,1)', zIndex: isDragging ? 5 : 1, touchAction: 'pan-y' }}>
+              <div style={{ transform: isDragging ? 'scale(1.03)' : 'scale(1)', transition: 'transform 0.16s ease' }}>
+                <TimerCard timer={t} index={i} theme={theme} disabled={!!drag} dragging={isDragging}
+                  onTap={() => { if (justDragged.current) return; onEditTimer(t.id); }}
+                  onPlay={() => { if (justDragged.current) return; onOpenTimer(t.id); }}
+                  onDelete={() => onDeleteTimer(t.id)} />
+              </div>
+              {showCoach && i === 0 && (
+                <Coach variant="swipe" text="Tap to edit · swipe to delete" align="right" tone={theme.statusDark ? 'dark' : 'light'} style={{ top: 0, bottom: 14, right: 0, left: 0 }} onDismiss={dismissCoach} />
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      <div style={{ flexShrink: 0, padding: '8px 22px 30px', background: 'linear-gradient(to top, var(--bg) 70%, transparent)' }}>
+        <PrimaryButton onClick={onNewTimer}><IconPlus size={20} /> New Timer</PrimaryButton>
+      </div>
+
+      <SettingsSheet open={showSettings} onClose={() => setShowSettings(false)} settings={settings} onChange={onChangeSetting} />
+    </div>
+  );
+}
+
+// ── Editor Screen ──
+const S_ed = window.IT_store;
+const LABEL_CHOICES = [
+  { key: 'warmup', text: 'Warmup' },
+  { key: 'work',   text: 'Work' },
+  { key: 'rest',   text: 'Rest' },
+  { key: 'cooldown', text: 'Cooldown' },
+  { key: 'custom', text: 'Custom' },
+];
+
+function MinSec({ value, onChange }) {
+  const fmt = (v) => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
+  const handle = (raw) => {
+    const digits = raw.replace(/\D/g, '').slice(-4);
+    if (!digits) { onChange(0); return; }
+    const n = parseInt(digits, 10);
+    let m = Math.floor(n / 100), s = n % 100;
+    if (s > 59) s = 59;
+    if (m > 99) m = 99;
+    onChange(m * 60 + s);
+  };
+  return (
+    <input type="text" inputMode="numeric" pattern="[0-9]*" value={fmt(value)}
+      onFocus={(e) => e.target.select()}
+      onChange={(e) => handle(e.target.value)}
+      style={{ width: '100%', boxSizing: 'border-box', textAlign: 'center', border: '1.5px solid var(--line-strong)', background: 'var(--surface-2)', color: 'var(--ink)', borderRadius: 14, padding: '14px 8px', outline: 'none', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 34, letterSpacing: '0.01em', fontVariantNumeric: 'tabular-nums' }} />
+  );
+}
+
+function StageSheet({ open, onClose, theme, initial, isNew, onSave, onDelete }) {
+  const [label, setLabel] = React.useState('warmup');
+  const [custom, setCustom] = React.useState('');
+  const [workSec, setWorkSec] = React.useState(0);
+  const [restSec, setRestSec] = React.useState(0);
+  const [rounds, setRounds] = React.useState(1);
+
+  React.useEffect(() => {
+    if (!open) return;
+    if (initial) {
+      const intent = window.labelIntent(initial.label);
+      setLabel(intent); setCustom(intent === 'custom' ? (initial.label || '') : '');
+      setWorkSec(initial.workSec); setRestSec(initial.restSec || 0); setRounds(initial.rounds || 1);
+    } else {
+      setLabel('warmup'); setCustom(''); setWorkSec(0); setRestSec(0); setRounds(1);
+    }
+  }, [open, initial]);
+
+  const intent = label;
+  const showRest = intent === 'work' || intent === 'custom';
+  const finalLabel = intent === 'custom' ? (custom.trim() || 'Custom') : LABEL_CHOICES.find(l => l.key === intent).text;
+
+  const save = () => {
+    onSave({
+      label: intent === 'custom' ? finalLabel : (intent === 'warmup' ? 'warmup' : intent === 'cooldown' ? 'cooldown' : intent === 'rest' ? 'rest' : 'work'),
+      workSec: Math.max(1, workSec),
+      restSec: showRest ? restSec : 0,
+      rounds: Math.max(1, rounds),
+    });
+  };
+
+  const SectionLabel = ({ children, mt = 20 }) => (
+    <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12.5, letterSpacing: '0.06em', textTransform: 'uppercase', color: 'var(--ink-faint)', margin: `${mt}px 0 11px` }}>{children}</div>
+  );
+
+  return (
+    <Sheet open={open} onClose={onClose} title={isNew ? 'Add Stage' : 'Edit Stage'}>
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginTop: 10 }}>
+        {LABEL_CHOICES.map(l => {
+          const lc = window.labelColor(theme, l.key === 'custom' ? '__c' : l.key);
+          const active = label === l.key;
+          return (
+            <button key={l.key} onClick={() => setLabel(l.key)} style={{ border: active ? '1.5px solid transparent' : `1.5px solid ${lc.color}`, cursor: 'pointer', borderRadius: 999, padding: '9px 15px', display: 'inline-flex', alignItems: 'center', gap: 8, fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 14, background: active ? lc.color : 'var(--surface-2)', color: active ? lc.on : 'var(--ink)', transition: 'all 0.15s ease' }}>
+              <span style={{ width: 10, height: 10, borderRadius: '50%', flexShrink: 0, background: active ? lc.on : lc.color, opacity: active ? 0.85 : 1 }} />
+              {l.text}
+            </button>
+          );
+        })}
+      </div>
+      {intent === 'custom' && (
+        <input value={custom} onChange={(e) => setCustom(e.target.value)} placeholder="Stage name (e.g. Sprints)" maxLength={20}
+          style={{ marginTop: 12, width: '100%', boxSizing: 'border-box', border: '1.5px solid var(--line-strong)', background: 'var(--surface-2)', color: 'var(--ink)', borderRadius: 12, padding: '13px 15px', fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 16, outline: 'none' }} />
+      )}
+
+      <div style={{ height: 22 }} />
+      <MinSec value={workSec} onChange={setWorkSec} />
+
+      {showRest && (
+        <>
+          <SectionLabel mt={36}>Rest after work (Optional)</SectionLabel>
+          <MinSec value={restSec} onChange={setRestSec} />
+        </>
+      )}
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginTop: 28 }}>
+        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 14, color: 'var(--ink-muted)', maxWidth: 150, lineHeight: 1.35 }}>Number of rounds</span>
+        <Stepper value={rounds} min={1} max={50} step={1} onChange={setRounds} suffix="×" />
+      </div>
+
+      <div style={{ marginTop: 26, display: 'flex', flexDirection: 'column', gap: 10 }}>
+        <PrimaryButton onClick={save}><IconCheck size={20} /> {isNew ? 'Add Stage' : 'Save Stage'}</PrimaryButton>
+        {!isNew && <button onClick={onDelete} style={{ border: 'none', background: 'transparent', color: '#FF3B30', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, padding: '10px', cursor: 'pointer' }}>Delete Stage</button>}
+      </div>
+    </Sheet>
+  );
+}
+
+function StageRowBody({ stage, theme, dragging, onHandleDown }) {
+  const lc = window.labelColor(theme, stage.label);
+  const parts = [S_ed.fmtClock(stage.workSec)];
+  if (stage.restSec > 0) parts.push(`rest ${S_ed.fmtClock(stage.restSec)}`);
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: 14, background: 'var(--surface)', borderRadius: 'var(--radius-card)', padding: '15px 12px 15px 16px', border: '1px solid var(--line)', boxShadow: dragging ? 'var(--shadow-float)' : 'var(--shadow-card)' }}>
+      <div style={{ width: 6, alignSelf: 'stretch', minHeight: 40, borderRadius: 999, background: lc.color, flexShrink: 0 }} />
+      <div style={{ flex: 1, minWidth: 0 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: 'var(--font-display)', fontWeight: 'var(--dw)', fontSize: 20, color: 'var(--ink)', letterSpacing: 'var(--dt)' }}>{S_ed.labelText(stage.label)}</span>
+          {stage.rounds > 1 && (
+            <span style={{ display: 'inline-flex', alignItems: 'center', gap: 3, background: lc.color, color: lc.on, borderRadius: 999, padding: '2px 9px', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 12 }}>
+              <IconRepeat size={12} /> {stage.rounds}×
+            </span>
+          )}
+        </div>
+        <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13.5, color: 'var(--ink-muted)', marginTop: 3, fontVariantNumeric: 'tabular-nums' }}>{parts.join('  ·  ')}</div>
+      </div>
+      <div data-no-swipe onPointerDown={onHandleDown} style={{ width: 40, height: 48, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'var(--ink-faint)', cursor: 'grab', touchAction: 'none', flexShrink: 0 }}>
+        <IconGrip size={22} />
+      </div>
+    </div>
+  );
+}
+
+function EditorScreen({ data, theme, editingTimer, onCancel, onSave, onDelete, coachDone, onCoachDone }) {
+  const isNew = !editingTimer;
+  const [name, setName] = React.useState(editingTimer ? editingTimer.name || '' : '');
+  const [stages, setStages] = React.useState(editingTimer ? editingTimer.stages.map(s => ({ ...s })) : []);
+  const [sheetOpen, setSheetOpen] = React.useState(false);
+  const [editIndex, setEditIndex] = React.useState(null);
+  const [openRowId, setOpenRowId] = React.useState(null);
+
+  const [swipeSeen, setSwipeSeen] = React.useState(coachDone);
+  const [dragSeen, setDragSeen] = React.useState(coachDone);
+  React.useEffect(() => {
+    if (!coachDone && swipeSeen && dragSeen) onCoachDone();
+  }, [swipeSeen, dragSeen]);
+
+  let coachStep = null;
+  if (!coachDone) {
+    if (!swipeSeen && stages.length >= 1) coachStep = 'swipe';
+    else if (!dragSeen && stages.length >= 2) coachStep = 'drag';
+  }
+
+  const [drag, setDrag] = React.useState(null);
+  const dragRef = React.useRef({});
+  const STRIDE = React.useRef(0);
+
+  const beginDrag = (e, id, index) => {
+    e.preventDefault(); setOpenRowId(null);
+    const rowEl = e.currentTarget.closest('[data-stage-row]');
+    const h = rowEl ? rowEl.getBoundingClientRect().height : 78;
+    STRIDE.current = h + 12;
+    dragRef.current = { id, from: index, y0: (e.touches ? e.touches[0] : e).clientY };
+    setDrag({ id, dy: 0, from: index });
+    if (coachStep === 'drag') setDragSeen(true);
+    document.addEventListener('pointermove', onDragMove);
+    document.addEventListener('pointerup', onDragUp);
+  };
+  const onDragMove = (e) => { const dy = e.clientY - dragRef.current.y0; setDrag(d => d ? { ...d, dy } : d); };
+  const onDragUp = () => {
+    document.removeEventListener('pointermove', onDragMove);
+    document.removeEventListener('pointerup', onDragUp);
+    setDrag(d => {
+      if (!d) return null;
+      let target = d.from + Math.round(d.dy / (STRIDE.current || 80));
+      target = Math.max(0, Math.min(stages.length - 1, target));
+      if (target !== d.from) {
+        setStages(prev => { const arr = prev.slice(); const [m] = arr.splice(d.from, 1); arr.splice(target, 0, m); return arr; });
+      }
+      return null;
+    });
+  };
+
+  const rowOffset = (index) => {
+    if (!drag) return 0;
+    const from = drag.from, stride = STRIDE.current || 80;
+    let target = from + Math.round(drag.dy / stride);
+    target = Math.max(0, Math.min(stages.length - 1, target));
+    if (index === from) return drag.dy;
+    if (from < target && index > from && index <= target) return -stride;
+    if (from > target && index < from && index >= target) return stride;
+    return 0;
+  };
+
+  const openNew = () => { setEditIndex(null); setSheetOpen(true); };
+  const openEdit = (i) => { if (drag) return; setEditIndex(i); setSheetOpen(true); };
+  const saveStage = (s) => {
+    setStages(prev => {
+      if (editIndex == null) return [...prev, { id: S_ed.uid(), ...s }];
+      const arr = prev.slice(); arr[editIndex] = { ...arr[editIndex], ...s }; return arr;
+    });
+    setSheetOpen(false);
+  };
+  const deleteStage = (i) => { setStages(prev => prev.filter((_, idx) => idx !== i)); setSheetOpen(false); };
+
+  const totalSec = stages.reduce((a, s) => a + s.rounds * (s.workSec + s.restSec), 0);
+  const canSave = stages.length > 0;
+
+  return (
+    <div style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 18px 8px', flexShrink: 0 }}>
+        <button onClick={onCancel} style={{ border: 'none', background: 'transparent', color: 'var(--ink-muted)', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, cursor: 'pointer', padding: 4 }}>Cancel</button>
+        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 17, color: 'var(--ink)' }}>{isNew ? 'New Timer' : 'Edit Timer'}</span>
+        <button onClick={() => canSave && onSave({ name: name.trim(), stages })} style={{ border: 'none', background: 'transparent', color: canSave ? 'var(--accent)' : 'var(--ink-faint)', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, cursor: canSave ? 'pointer' : 'default', padding: 4 }}>Save</button>
+      </div>
+
+      <div style={{ flex: 1, overflowY: 'auto', padding: '12px 22px 8px' }}>
+        <input value={name} onChange={(e) => setName(e.target.value)} placeholder={`Timer ${data.timers.length + 1}`} maxLength={28}
+          style={{ width: '100%', boxSizing: 'border-box', border: 'none', background: 'transparent', color: 'var(--ink)', fontFamily: 'var(--font-display)', fontWeight: theme.displayWeight, fontSize: 34, letterSpacing: theme.displayTracking, outline: 'none', padding: '2px 0 4px' }} />
+        <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 13.5, color: 'var(--ink-muted)', marginBottom: 18 }}>
+          {stages.length === 0 ? 'Add stages to build your interval' : `${S_ed.fmtDuration(totalSec)} total · ${stages.length} stage${stages.length > 1 ? 's' : ''}`}
+        </div>
+
+        <div style={{ position: 'relative' }}>
+          {stages.map((s, i) => {
+            const off = rowOffset(i);
+            const isDragging = drag && drag.id === s.id;
+            return (
+              <div key={s.id} data-stage-row style={{ position: 'relative', marginBottom: 12, transform: `translateY(${off}px)`, transition: isDragging ? 'none' : 'transform 0.22s cubic-bezier(.32,.72,0,1)', zIndex: isDragging ? 5 : 1 }}>
+                <div style={{ transform: isDragging ? 'scale(1.03)' : 'scale(1)', transition: 'transform 0.16s ease' }}>
+                  <SwipeRow onTap={() => openEdit(i)} disabled={!!drag}
+                    openExternally={openRowId === s.id ? undefined : false}
+                    onOpenChange={(o) => { if (o) { setOpenRowId(s.id); if (coachStep === 'swipe') setSwipeSeen(true); } else if (openRowId === s.id) setOpenRowId(null); }}
+                    actions={[{ label: 'Delete', color: '#FF3B30', ink: '#fff', icon: <IconTrash size={20} />, onClick: () => deleteStage(i) }]}>
+                    <StageRowBody stage={s} theme={theme} dragging={isDragging} onHandleDown={(e) => beginDrag(e, s.id, i)} />
+                  </SwipeRow>
+                </div>
+                {coachStep === 'swipe' && i === 0 && (
+                  <Coach variant="swipe" text="Swipe left to delete" align="right" tone={theme.statusDark ? 'dark' : 'light'} style={{ top: 0, bottom: 0, right: 0, left: 0 }} onDismiss={() => setSwipeSeen(true)} />
+                )}
+                {coachStep === 'drag' && i === 1 && (
+                  <Coach variant="drag" text="Drag to reorder" align="right" tone={theme.statusDark ? 'dark' : 'light'} style={{ top: 0, bottom: 0, right: 0, left: 0 }} onDismiss={() => setDragSeen(true)} />
+                )}
+              </div>
+            );
+          })}
+        </div>
+
+        <button onClick={openNew} style={{ width: '100%', boxSizing: 'border-box', marginTop: 2, cursor: 'pointer', border: '2px dashed var(--line-strong)', background: 'transparent', color: 'var(--ink-muted)', borderRadius: 'var(--radius-card)', padding: '17px', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 16, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <IconPlus size={20} /> Add Stage
+        </button>
+
+        {!isNew && onDelete && (
+          <button onClick={onDelete} style={{ width: '100%', boxSizing: 'border-box', marginTop: 24, cursor: 'pointer', border: 'none', background: 'transparent', color: '#FF3B30', borderRadius: 'var(--radius-card)', padding: '15px', fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15.5, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+            <IconTrash size={19} /> Delete Timer
+          </button>
+        )}
+      </div>
+
+      <div style={{ flexShrink: 0, padding: '8px 22px 30px', background: 'linear-gradient(to top, var(--bg) 70%, transparent)' }}>
+        <PrimaryButton disabled={!canSave} onClick={() => canSave && onSave({ name: name.trim(), stages })}>
+          {isNew ? 'Create Timer' : 'Save Changes'}
+        </PrimaryButton>
+      </div>
+
+      <StageSheet open={sheetOpen} onClose={() => setSheetOpen(false)} theme={theme}
+        isNew={editIndex == null} initial={editIndex == null ? null : stages[editIndex]}
+        onSave={saveStage} onDelete={() => deleteStage(editIndex)} />
+    </div>
+  );
+}
+
+// ── Running Screen ──
+const S_run = window.IT_store;
+
+function useAudio() {
+  const ref = React.useRef(null);
+  const ensure = () => {
+    if (!ref.current) { try { ref.current = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {} }
+    if (ref.current && ref.current.state === 'suspended') ref.current.resume();
+    return ref.current;
+  };
+  const beep = (freq = 880, dur = 0.12, vol = 0.18) => {
+    const ctx = ref.current; if (!ctx) return;
+    const t = ctx.currentTime;
+    const osc = ctx.createOscillator(), g = ctx.createGain();
+    osc.type = 'sine'; osc.frequency.value = freq;
+    g.gain.setValueAtTime(0, t);
+    g.gain.linearRampToValueAtTime(vol, t + 0.012);
+    g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(t); osc.stop(t + dur + 0.02);
+  };
+  return { ensure, beep };
+}
+
+function CtrlButton({ onClick, children, size = 60, fill, ink, border }) {
+  return (
+    <button onClick={onClick} style={{ width: size, height: size, borderRadius: '50%', cursor: 'pointer', background: fill, color: ink, border: border || 'none', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'transform 0.1s ease' }}
+      onPointerDown={(e) => e.currentTarget.style.transform = 'scale(0.92)'}
+      onPointerUp={(e) => e.currentTarget.style.transform = 'scale(1)'}
+      onPointerLeave={(e) => e.currentTarget.style.transform = 'scale(1)'}
+    >{children}</button>
+  );
+}
+
+function RunningScreen({ timer, theme, name, sound, haptics, keepRunningInBackground, autoStart, onExit }) {
+  const segs = React.useMemo(() => S_run.buildSegments(timer), [timer]);
+  const totalSec = React.useMemo(() => segs.reduce((a, s) => a + s.sec, 0), [segs]);
+  const beforeSec = React.useMemo(() => { const arr = []; let acc = 0; segs.forEach(s => { arr.push(acc); acc += s.sec; }); return arr; }, [segs]);
+
+  const audio = useAudio();
+  const [, force] = React.useReducer(x => x + 1, 0);
+  const st = React.useRef({ i: 0, remMs: segs[0].sec * 1000, running: false, done: false, ready: !autoStart, lastSec: segs[0].sec });
+  const raf = React.useRef(0);
+  const lastTs = React.useRef(0);
+  const [pulse, setPulse] = React.useState(0);
+  const [bgPaused, setBgPaused] = React.useState(false);
+  const bgPausedRef = React.useRef(false);
+  const ringRef = React.useRef(null);
+  const ringApplied = React.useRef('');
+
+  const buzz = (pattern) => { if (haptics && navigator.vibrate) navigator.vibrate(pattern); };
+  const stop = () => { cancelAnimationFrame(raf.current); raf.current = 0; };
+
+  const startLoop = () => {
+    stop(); lastTs.current = performance.now();
+    const loop = (ts) => {
+      const s = st.current;
+      const dt = ts - lastTs.current; lastTs.current = ts;
+      s.remMs -= dt;
+      const secLeft = Math.ceil(s.remMs / 1000);
+      if (secLeft !== s.lastSec) { if (secLeft <= 3 && secLeft >= 1 && sound) audio.beep(880, 0.1, 0.16); s.lastSec = secLeft; }
+      if (s.remMs <= 0) { const more = advance(); if (!more) return; }
+      force();
+      raf.current = requestAnimationFrame(loop);
+    };
+    raf.current = requestAnimationFrame(loop);
+  };
+
+  const advance = () => {
+    const s = st.current;
+    if (s.i >= segs.length - 1) {
+      stop(); s.done = true; s.running = false; s.remMs = 0;
+      if (sound) { audio.beep(660, 0.14, 0.18); setTimeout(() => audio.beep(880, 0.14, 0.18), 150); setTimeout(() => audio.beep(1175, 0.22, 0.2), 320); }
+      buzz([90, 60, 90, 60, 160]); force(); return false;
+    }
+    s.i += 1; s.remMs = segs[s.i].sec * 1000; s.lastSec = segs[s.i].sec;
+    if (sound) audio.beep(1100, 0.16, 0.2);
+    buzz(60); setPulse(p => p + 1); lastTs.current = performance.now(); force(); return true;
+  };
+
+  const start   = () => { audio.ensure(); const s = st.current; s.ready = false; s.running = true; if (sound) audio.beep(1100, 0.16, 0.2); setPulse(p => p + 1); startLoop(); force(); };
+  const pause   = () => { const s = st.current; s.running = false; stop(); force(); };
+  const resume  = () => { audio.ensure(); const s = st.current; s.running = true; startLoop(); force(); };
+  const toggle  = () => (st.current.running ? pause() : resume());
+  const next    = () => { const s = st.current; if (s.i < segs.length - 1) { s.i += 1; s.remMs = segs[s.i].sec * 1000; s.lastSec = segs[s.i].sec; lastTs.current = performance.now(); setPulse(p => p + 1); force(); } else advance(); };
+  const prev    = () => { const s = st.current; if (s.remMs < segs[s.i].sec * 1000 - 1200 || s.i === 0) { s.remMs = segs[s.i].sec * 1000; } else { s.i -= 1; s.remMs = segs[s.i].sec * 1000; } s.lastSec = Math.ceil(s.remMs / 1000); lastTs.current = performance.now(); setPulse(p => p + 1); force(); };
+  const restart = () => { stop(); const s = st.current; s.i = 0; s.remMs = segs[0].sec * 1000; s.lastSec = segs[0].sec; s.done = false; setBgPaused(false); bgPausedRef.current = false; start(); };
+
+  React.useEffect(() => () => stop(), []);
+  React.useEffect(() => { if (autoStart) start(); }, []);
+  React.useEffect(() => {
+    const onVis = () => {
+      if (document.hidden) { if (!keepRunningInBackground && st.current.running) { pause(); setBgPaused(true); bgPausedRef.current = true; } }
+      else if (bgPausedRef.current) { bgPausedRef.current = false; setBgPaused(false); if (!st.current.done) resume(); }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => document.removeEventListener('visibilitychange', onVis);
+  }, [keepRunningInBackground]);
+
+  const applyRing = () => {
+    const el = ringRef.current; if (!el) return;
+    const s = st.current; const seg = segs[s.i]; if (!seg) return;
+    const C = 2 * Math.PI * 120;
+    const frac = Math.max(0, Math.min(1, s.remMs / (seg.sec * 1000)));
+    const offNow = C * (1 - frac);
+    const key = pulse + '|' + (s.running ? 'run' : 'hold');
+    if (key === ringApplied.current) return;
+    ringApplied.current = key;
+    if (s.running) {
+      el.style.transition = 'none'; el.style.strokeDashoffset = offNow + 'px';
+      void el.getBoundingClientRect();
+      el.style.transition = 'stroke-dashoffset ' + Math.max(0, s.remMs) + 'ms linear';
+      el.style.strokeDashoffset = C + 'px';
+    } else {
+      el.style.transition = 'stroke-dashoffset 0.25s ease';
+      el.style.strokeDashoffset = offNow + 'px';
+    }
+  };
+  React.useEffect(() => { applyRing(); });
+
+  const s = st.current;
+
+  if (s.ready) {
+    return (
+      <div key="run-ready" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: 'var(--bg)' }}>
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '60px 18px 6px', flexShrink: 0 }}>
+          <button onClick={onExit} style={{ border: '1px solid var(--line)', background: 'var(--surface)', color: 'var(--ink)', width: 42, height: 42, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><IconChevL size={22} /></button>
+          <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, color: 'var(--ink-muted)' }}>Ready</span>
+          <div style={{ width: 42 }} />
+        </div>
+        <div style={{ padding: '8px 24px 0', flexShrink: 0 }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: theme.displayWeight, fontSize: 38, color: 'var(--ink)', margin: '6px 0 4px', letterSpacing: theme.displayTracking, lineHeight: 1.02 }}>{name}</h1>
+          <div style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 15, color: 'var(--ink-muted)' }}>{S_run.fmtDuration(totalSec)} · {segs.length} segments</div>
+        </div>
+        <div style={{ flex: 1, overflowY: 'auto', padding: '18px 24px 8px' }}>
+          {timer.stages.map((stg, i) => {
+            const lc = window.labelColor(theme, stg.label);
+            return (
+              <div key={stg.id} style={{ display: 'flex', alignItems: 'center', gap: 13, padding: '13px 0', borderBottom: '1px solid var(--line)' }}>
+                <div style={{ width: 14, height: 14, borderRadius: 5, background: lc.color, flexShrink: 0 }} />
+                <span style={{ flex: 1, fontFamily: 'var(--font-display)', fontWeight: theme.displayWeight, fontSize: 19, color: 'var(--ink)', letterSpacing: theme.displayTracking }}>{S_run.labelText(stg.label)}</span>
+                {stg.rounds > 1 && <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 13, color: lc.color }}>{stg.rounds}×</span>}
+                <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 600, fontSize: 14, color: 'var(--ink-muted)', fontVariantNumeric: 'tabular-nums' }}>
+                  {S_run.fmtClock(stg.workSec)}{stg.restSec > 0 ? ` / ${S_run.fmtClock(stg.restSec)}` : ''}
+                </span>
+              </div>
+            );
+          })}
+        </div>
+        <div style={{ flexShrink: 0, padding: '10px 24px 32px' }}>
+          <PrimaryButton onClick={start}><IconPlay size={20} /> Start</PrimaryButton>
+        </div>
+      </div>
+    );
+  }
+
+  if (s.done) {
+    return (
+      <div key="run-done" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--accent)', color: 'var(--accent-ink)', padding: 30, textAlign: 'center' }}>
+        <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
+          <IconCheck size={52} />
+        </div>
+        <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: theme.displayWeight, fontSize: 46, margin: '0 0 6px', letterSpacing: theme.displayTracking }}>Complete</h1>
+        <p style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 17, opacity: 0.85, margin: '0 0 36px' }}>{name} · {S_run.fmtDuration(totalSec)}</p>
+        <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 320 }}>
+          <button onClick={restart} style={{ flex: 1, border: '1.5px solid currentColor', background: 'transparent', color: 'inherit', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, padding: '16px', borderRadius: 999, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><IconReplay size={18} /> Again</button>
+          <button onClick={onExit} style={{ flex: 1, border: 'none', background: 'var(--accent-ink)', color: 'var(--accent)', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, padding: '16px', borderRadius: 999, cursor: 'pointer' }}>Done</button>
+        </div>
+      </div>
+    );
+  }
+
+  const seg = segs[s.i];
+  const sc = window.segColor(theme, seg.type, seg.label);
+  const bg = sc.color, on = sc.on;
+  const onDim = (a) => (on === '#FFFFFF' || on === '#fff') ? `rgba(255,255,255,${a})` : `rgba(0,0,0,${a})`;
+  const R = 120, C = 2 * Math.PI * R;
+  const ringW = theme.id === 'minimal' ? 9 : theme.id === 'sporty' ? 15 : 18;
+  const overall = (beforeSec[s.i] + (seg.sec - s.remMs / 1000)) / totalSec;
+  const nextSeg = segs[s.i + 1];
+  const secCeil = Math.ceil(s.remMs / 1000);
+
+  return (
+    <div key="run-live" style={{ height: '100%', display: 'flex', flexDirection: 'column', background: bg, color: on, transition: 'background 0.4s ease' }}>
+      <div style={{ height: 4, background: onDim(0.18), marginTop: 54, flexShrink: 0 }}>
+        <div style={{ height: '100%', width: `${overall * 100}%`, background: on, transition: 'width 0.25s linear' }} />
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 18px 0', flexShrink: 0 }}>
+        <button onClick={onExit} style={{ border: 'none', background: onDim(0.16), color: on, width: 40, height: 40, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer' }}><IconClose size={20} /></button>
+        <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, opacity: 0.85, letterSpacing: '0.02em' }}>{name}</span>
+        <div style={{ width: 40, height: 40 }} aria-hidden="true" />
+      </div>
+
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', position: 'relative' }}>
+        <div key={pulse} style={{ position: 'relative', width: 280, height: 280, animation: 'itRingPulse 0.45s ease' }}>
+          <svg width="280" height="280" viewBox="0 0 280 280" style={{ transform: 'rotate(-90deg)' }}>
+            <circle cx="140" cy="140" r={R} fill="none" stroke={onDim(0.2)} strokeWidth={ringW} />
+            <circle ref={ringRef} cx="140" cy="140" r={R} fill="none" stroke={on} strokeWidth={ringW} strokeLinecap="round" strokeDasharray={C} strokeDashoffset={0} />
+          </svg>
+          <div style={{ position: 'absolute', inset: 0, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, letterSpacing: '0.14em', textTransform: 'uppercase', opacity: 0.9, marginBottom: 2 }}>{S_run.labelText(seg.label)}</span>
+            <span style={{ fontFamily: 'var(--font-display)', fontWeight: theme.displayWeight, fontSize: 88, lineHeight: 1, letterSpacing: theme.displayTracking, fontVariantNumeric: 'tabular-nums' }}>{S_run.fmtClock(secCeil)}</span>
+            {seg.totalRounds > 1 && (
+              <span style={{ fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 14, letterSpacing: '0.06em', opacity: 0.85, marginTop: 6, textTransform: 'uppercase' }}>Round {seg.round} / {seg.totalRounds}</span>
+            )}
+          </div>
+        </div>
+        <div style={{ marginTop: 26, minHeight: 24, fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 15, opacity: 0.82 }}>
+          {nextSeg ? `Next: ${S_run.labelText(nextSeg.label)} ${S_run.fmtClock(nextSeg.sec)}` : 'Last segment'}
+        </div>
+        {bgPaused && !s.running && (
+          <div style={{ marginTop: 8, fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 12.5, background: onDim(0.16), padding: '5px 12px', borderRadius: 999 }}>Paused — you left the app</div>
+        )}
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 22, padding: '10px 24px 40px', flexShrink: 0 }}>
+        <CtrlButton onClick={prev} size={58} fill={onDim(0.16)} ink={on}><IconPrev size={24} /></CtrlButton>
+        <CtrlButton onClick={toggle} size={84} fill={on} ink={bg}>
+          {s.running ? <IconPause size={34} /> : <IconPlay size={34} />}
+        </CtrlButton>
+        <CtrlButton onClick={next} size={58} fill={onDim(0.16)} ink={on}><IconNext size={24} /></CtrlButton>
+      </div>
+    </div>
+  );
+}
+
+// ── App ──
+const S = window.IT_store;
+
+function Frame({ children, kind, animate }) {
+  const map = {
+    'enter-push': 'itEnterRight 0.36s cubic-bezier(.32,.72,0,1) both',
+    'exit-push':  'itExitLeft 0.36s cubic-bezier(.32,.72,0,1) both',
+    'enter-pop':  'itEnterLeft 0.36s cubic-bezier(.32,.72,0,1) both',
+    'exit-pop':   'itExitRight 0.36s cubic-bezier(.32,.72,0,1) both',
+  };
+  const z = (kind === 'enter-push' || kind === 'exit-pop') ? 2 : 1;
+  return (
+    <div style={{ position: 'absolute', inset: 0, zIndex: z, animation: animate ? map[kind] : 'none' }}>{children}</div>
+  );
+}
+
+function App() {
+  const [data, setData] = React.useState(() => S.load());
+  const [view, setView] = React.useState({ name: 'home', _k: 'home0' });
+  const [prev, setPrev] = React.useState(null);
+  const dirRef = React.useRef('push');
+  const navLock = React.useRef(false);
+
+  const theme = window.IT_THEMES[data.settings.flavor] || window.IT_THEMES.sporty;
+
+  const persist = (next) => { setData(next); S.save(next); };
+
+  const navTo = (next, dir) => {
+    if (navLock.current) return;
+    navLock.current = true;
+    dirRef.current = dir;
+    setPrev({ ...view });
+    setView({ ...next, _k: next.name + Math.random().toString(36).slice(2, 6) });
+    setTimeout(() => { setPrev(null); navLock.current = false; }, 380);
+  };
+
+  const deleteTimer    = (id) => persist({ ...data, timers: data.timers.filter(x => x.id !== id) });
+  const saveTimer      = ({ name, stages }, editId) => {
+    let next;
+    if (editId) { next = { ...data, timers: data.timers.map(x => x.id === editId ? { ...x, name, stages } : x) }; }
+    else { const timer = { id: S.uid(), name, stages, createdAt: Date.now() }; next = { ...data, timers: [...data.timers, timer], counter: (data.counter || 0) + 1 }; }
+    persist(next); navTo({ name: 'home' }, 'pop');
+  };
+  const markCoachDone     = () => persist({ ...data, coachDone: true });
+  const markHomeCoachDone = () => persist({ ...data, homeCoachDone: true });
+  const reorderTimers     = (from, to) => { if (from === to) return; const arr = data.timers.slice(); const [m] = arr.splice(from, 1); arr.splice(to, 0, m); persist({ ...data, timers: arr }); };
+  const changeSetting     = (key, val) => persist({ ...data, settings: { ...data.settings, [key]: val } });
+
+  const settings = data.settings;
+
+  const renderScreen = (v) => {
+    if (v.name === 'home') return (
+      <HomeScreen data={data} theme={theme} settings={settings} onChangeSetting={changeSetting}
+        onOpenTimer={(id) => navTo({ name: 'run', id, autoStart: true }, 'push')}
+        onEditTimer={(id) => navTo({ name: 'edit', id }, 'push')}
+        onNewTimer={() => navTo({ name: 'edit', id: null }, 'push')}
+        onDeleteTimer={deleteTimer} onReorderTimers={reorderTimers}
+        homeCoachDone={data.homeCoachDone} onHomeCoachDone={markHomeCoachDone} />
+    );
+    if (v.name === 'edit') {
+      const editingTimer = v.id ? data.timers.find(x => x.id === v.id) : null;
+      return (
+        <EditorScreen data={data} theme={theme} editingTimer={editingTimer}
+          coachDone={data.coachDone} onCoachDone={markCoachDone}
+          onCancel={() => navTo({ name: 'home' }, 'pop')}
+          onSave={(payload) => saveTimer(payload, v.id)}
+          onDelete={v.id ? () => { deleteTimer(v.id); navTo({ name: 'home' }, 'pop'); } : null} />
+      );
+    }
+    if (v.name === 'run') {
+      const timer = data.timers.find(x => x.id === v.id);
+      if (!timer) return null;
+      const index = data.timers.findIndex(x => x.id === v.id);
+      return (
+        <RunningScreen timer={timer} theme={theme} name={S.timerName(timer, index)}
+          sound={settings.sound} haptics={settings.haptics} autoStart={!!v.autoStart}
+          keepRunningInBackground={settings.keepRunningInBackground}
+          onExit={() => navTo({ name: 'home' }, 'pop')} />
+      );
+    }
+    return null;
+  };
+
+  const rootVars = {
+    ...window.styleVars(theme),
+    '--font-ui': theme.fontUI, '--font-display': theme.fontDisplay,
+    '--dw': theme.displayWeight, '--dt': theme.displayTracking,
+  };
+
+  const dir = dirRef.current;
+
+  return (
+    <div style={{ flex: 1, maxWidth: 480, position: 'relative', overflow: 'hidden', ...rootVars, background: 'var(--bg)', color: 'var(--ink)', fontFamily: 'var(--font-ui)' }}>
+      {prev && <Frame kind={dir === 'push' ? 'exit-push' : 'exit-pop'} animate={true} key={prev._k}>{renderScreen(prev)}</Frame>}
+      <Frame kind={dir === 'push' ? 'enter-push' : 'enter-pop'} animate={!!prev} key={view._k}>{renderScreen(view)}</Frame>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+</script>
+</body>
+</html>
