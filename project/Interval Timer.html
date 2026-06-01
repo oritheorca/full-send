@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+<title>Full Send</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Saira+Condensed:wght@500;600;700;800&family=Saira:wght@500;600;700&family=Fredoka:wght@400;500;600;700&family=Nunito:wght@500;600;700;800&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet" />
+<style>
+  * { -webkit-tap-highlight-color: transparent; }
+  html, body { margin: 0; padding: 0; background: #15151a; }
+  body { font-family: -apple-system, system-ui, sans-serif; }
+  button { font: inherit; -webkit-user-select: none; user-select: none; }
+  input { -webkit-user-select: text; user-select: text; }
+  ::-webkit-scrollbar { width: 0; height: 0; }
+
+  /* navigation transitions */
+  @keyframes itEnterRight { from { transform: translateX(100%); } to { transform: translateX(0); } }
+  @keyframes itExitLeft  { from { transform: translateX(0); filter: brightness(1); } to { transform: translateX(-26%); filter: brightness(0.72); } }
+  @keyframes itEnterLeft { from { transform: translateX(-26%); filter: brightness(0.72); } to { transform: translateX(0); filter: brightness(1); } }
+  @keyframes itExitRight { from { transform: translateX(0); } to { transform: translateX(100%); } }
+
+  /* coachmark ghost touch */
+  @keyframes itGhostSwipe {
+    0% { transform: translateX(10px); opacity: 0; }
+    12% { opacity: 1; }
+    46% { transform: translateX(-66px); }
+    62% { transform: translateX(-66px); opacity: 1; }
+    80% { opacity: 0; }
+    100% { transform: translateX(10px); opacity: 0; }
+  }
+  @keyframes itGhostDrag {
+    0% { transform: translateY(-26px); opacity: 0; }
+    14% { opacity: 1; }
+    50% { transform: translateY(26px); }
+    66% { transform: translateY(26px); opacity: 1; }
+    84% { opacity: 0; }
+    100% { transform: translateY(-26px); opacity: 0; }
+  }
+  @keyframes itGhostPulse {
+    0%, 100% { transform: scale(0.86); }
+    40% { transform: scale(1.05); }
+  }
+  @keyframes itCoachIn { from { opacity: 0; transform: scale(0.9); } to { opacity: 1; transform: scale(1); } }
+
+  /* running ring pulse on segment change */
+  @keyframes itRingPulse { 0% { transform: scale(1); } 35% { transform: scale(1.045); } 100% { transform: scale(1); } }
+</style>
+</head>
+<body>
+<div id="root"></div>
+
+<template id="__bundler_thumbnail">
+  <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+    <rect width="100" height="100" fill="#0C0F14"/>
+    <circle cx="50" cy="50" r="26" fill="none" stroke="#1F262F" stroke-width="7"/>
+    <circle cx="50" cy="50" r="26" fill="none" stroke="#D6FB3D" stroke-width="7" stroke-linecap="round" stroke-dasharray="163" stroke-dashoffset="55" transform="rotate(-90 50 50)"/>
+    <path d="M52 36 L42 52 H50 L48 64 L58 48 H50 Z" fill="#FF5A3C"/>
+  </svg>
+</template>
+
+<script src="https://unpkg.com/react@18.3.1/umd/react.development.js" integrity="sha384-hD6/rw4ppMLGNu3tX5cjIb+uRZ7UkRJ6BPkLpg4hAu/6onKUg4lLsHAs9EBPT82L" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/react-dom@18.3.1/umd/react-dom.development.js" integrity="sha384-u6aeetuaXnQ38mYT8rp6sbXaQe3NL9t+IBXmnYxwkUI2Hw4bsp2Wvmx4yRQF1uAm" crossorigin="anonymous"></script>
+<script src="https://unpkg.com/@babel/standalone@7.29.0/babel.min.js" integrity="sha384-m08KidiNqLdpJqLq95G/LEi8Qvjl/xUYll3QILypMoQ65QorJ9Lvtp2RXYGBFj1y" crossorigin="anonymous"></script>
+
+<!-- plain JS modules (data + tokens) -->
+<script src="themes.js"></script>
+<script src="store.js"></script>
+
+<!-- React component modules -->
+<script type="text/babel" src="ios-frame.jsx"></script>
+<script type="text/babel" src="tweaks-panel.jsx"></script>
+<script type="text/babel" src="icons.jsx"></script>
+<script type="text/babel" src="ghost.jsx"></script>
+<script type="text/babel" src="ui.jsx"></script>
+<script type="text/babel" src="swipe.jsx"></script>
+<script type="text/babel" src="home.jsx"></script>
+<script type="text/babel" src="editor.jsx"></script>
+<script type="text/babel" src="running.jsx"></script>
+<script type="text/babel" src="app.jsx"></script>
+</body>
+</html>
