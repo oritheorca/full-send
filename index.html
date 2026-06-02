@@ -1112,13 +1112,13 @@ function RunningScreen({ timer, theme, name, sound, haptics, keepRunningInBackgr
   if (s.done) {
     return (
       <div key="run-done" style={{ height: '100%', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--accent)', color: 'var(--accent-ink)', padding: 30, textAlign: 'center' }}>
-        <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'rgba(255,255,255,0.18)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
-          <IconCheck size={52} />
+        <div style={{ width: 96, height: 96, borderRadius: '50%', background: 'var(--accent-ink)', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: 22 }}>
+          <span style={{ color: 'var(--accent)' }}><IconCheck size={52} /></span>
         </div>
         <h1 style={{ fontFamily: 'var(--font-display)', fontWeight: theme.displayWeight, fontSize: 46, margin: '0 0 6px', letterSpacing: theme.displayTracking }}>Complete</h1>
         <p style={{ fontFamily: 'var(--font-ui)', fontWeight: 700, fontSize: 17, opacity: 0.85, margin: '0 0 36px' }}>{name} · {S_run.fmtDuration(totalSec)}</p>
         <div style={{ display: 'flex', gap: 12, width: '100%', maxWidth: 320 }}>
-          <button onClick={restart} style={{ flex: 1, border: '1.5px solid currentColor', background: 'transparent', color: 'inherit', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, padding: '16px', borderRadius: 999, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><IconReplay size={18} /> Again</button>
+          <button onClick={restart} style={{ flex: 1, border: '1.5px solid currentColor', background: 'transparent', color: 'inherit', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, padding: '16px', borderRadius: 999, cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 7 }}><IconReplay size={18} /> Repeat</button>
           <button onClick={onExit} style={{ flex: 1, border: 'none', background: 'var(--accent-ink)', color: 'var(--accent)', fontFamily: 'var(--font-ui)', fontWeight: 800, fontSize: 16, padding: '16px', borderRadius: 999, cursor: 'pointer' }}>Done</button>
         </div>
       </div>
