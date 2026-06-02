@@ -1,6 +1,6 @@
 {
-  "name": "Full Send",
-  "short_name": "Full Send",
+  "name": "Intervals",
+  "short_name": "Intervals",
   "description": "Interval timer with multi-stage workouts",
   "start_url": "./",
   "scope": "./",
