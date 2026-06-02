@@ -486,54 +486,100 @@ function HomeScreen({ data, theme, onOpenTimer, onEditTimer, onNewTimer, onDelet
   const lpRef = React.useRef(null);
   const pressRef = React.useRef({});
   const justDragged = React.useRef(false);
+  const homeDragHandlers = React.useRef(null);
+  const pressHandlers = React.useRef(null);
+  const timersRef = React.useRef(timers);
+  timersRef.current = timers;
+  const onReorderRef = React.useRef(onReorderTimers);
+  onReorderRef.current = onReorderTimers;
   const [coachSeen, setCoachSeen] = React.useState(homeCoachDone);
   const showCoach = !homeCoachDone && !coachSeen && timers.length >= 1;
   const dismissCoach = () => { setCoachSeen(true); onHomeCoachDone && onHomeCoachDone(); };
 
   const clearLP = () => { if (lpRef.current) { clearTimeout(lpRef.current); lpRef.current = null; } };
-  const removePressListeners = () => { document.removeEventListener('pointermove', onPressMove); document.removeEventListener('pointerup', onPressUp); document.removeEventListener('pointercancel', onPressUp); };
-  const onPressMove = (e) => { if (pressRef.current.started) return; const dx = e.clientX - pressRef.current.x0, dy = e.clientY - pressRef.current.y0; if (Math.abs(dx) > 9 || Math.abs(dy) > 9) { clearLP(); removePressListeners(); } };
-  const onPressUp = () => { clearLP(); removePressListeners(); };
 
-  const startDrag = (id, index) => {
-    removePressListeners(); pressRef.current.started = true; justDragged.current = true;
-    if (settings.haptics && navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
-    const el = document.querySelector(`[data-home-row="${id}"]`);
-    const h = el ? el.getBoundingClientRect().height : 150;
-    STRIDE.current = h + 14;
-    dragRef.current = { id, from: index, y0: pressRef.current.y0 };
-    setDrag({ id, dy: 0, from: index });
-    document.addEventListener('pointermove', onDragMove);
-    document.addEventListener('pointerup', onDragUp);
-    document.addEventListener('pointercancel', onDragUp);
-    if (showCoach) dismissCoach();
-  };
-  const onDragMove = (e) => { const dy = e.clientY - dragRef.current.y0; setDrag(d => d ? { ...d, dy } : d); };
-  const onDragUp = () => {
-    document.removeEventListener('pointermove', onDragMove);
-    document.removeEventListener('pointerup', onDragUp);
-    document.removeEventListener('pointercancel', onDragUp);
-    setDrag(d => {
-      if (!d) return null;
-      let target = d.from + Math.round(d.dy / (STRIDE.current || 150));
-      target = Math.max(0, Math.min(timers.length - 1, target));
-      if (target !== d.from) onReorderTimers(d.from, target);
-      return null;
-    });
-    setTimeout(() => { justDragged.current = false; }, 60);
-  };
   const onCardDown = (e, id, index) => {
     if (drag) return;
     if (e.target.closest && e.target.closest('[data-no-swipe]')) return;
-    const p = e.touches ? e.touches[0] : e;
-    pressRef.current = { x0: p.clientX, y0: p.clientY, id, index, started: false };
+    pressRef.current = { x0: e.clientX, y0: e.clientY, id, index, started: false };
     clearLP();
-    lpRef.current = setTimeout(() => startDrag(id, index), 420);
-    document.addEventListener('pointermove', onPressMove);
-    document.addEventListener('pointerup', onPressUp);
-    document.addEventListener('pointercancel', onPressUp);
+    // Create stable press-phase handlers for this interaction
+    const p$ = {
+      move: (ev) => {
+        if (pressRef.current.started) return;
+        const dx = ev.clientX - pressRef.current.x0, dy = ev.clientY - pressRef.current.y0;
+        if (Math.abs(dx) > 14 || Math.abs(dy) > 14) {
+          clearLP();
+          document.removeEventListener('pointermove',  p$.move);
+          document.removeEventListener('pointerup',    p$.up);
+          document.removeEventListener('pointercancel', p$.up);
+        }
+      },
+      up: () => {
+        clearLP();
+        document.removeEventListener('pointermove',  p$.move);
+        document.removeEventListener('pointerup',    p$.up);
+        document.removeEventListener('pointercancel', p$.up);
+      },
+    };
+    pressHandlers.current = p$;
+    document.addEventListener('pointermove',  p$.move);
+    document.addEventListener('pointerup',    p$.up);
+    document.addEventListener('pointercancel', p$.up);
+    lpRef.current = setTimeout(() => {
+      document.removeEventListener('pointermove',  p$.move);
+      document.removeEventListener('pointerup',    p$.up);
+      document.removeEventListener('pointercancel', p$.up);
+      pressRef.current.started = true;
+      justDragged.current = true;
+      if (settings.haptics && navigator.vibrate) { try { navigator.vibrate(12); } catch (err) {} }
+      const el = document.querySelector(`[data-home-row="${id}"]`);
+      const rowH = el ? el.getBoundingClientRect().height : 150;
+      STRIDE.current = rowH + 14;
+      dragRef.current = { id, from: index, y0: pressRef.current.y0 };
+      setDrag({ id, dy: 0, from: index });
+      if (showCoach) dismissCoach();
+      // Create stable drag handlers
+      const h$ = {
+        move: (ev) => {
+          const dy = ev.clientY - dragRef.current.y0;
+          setDrag(d => d ? { ...d, dy } : d);
+        },
+        up: () => {
+          document.removeEventListener('pointermove',  h$.move);
+          document.removeEventListener('pointerup',    h$.up);
+          document.removeEventListener('pointercancel', h$.up);
+          homeDragHandlers.current = null;
+          setDrag(d => {
+            if (!d) return null;
+            let target = d.from + Math.round(d.dy / (STRIDE.current || 150));
+            target = Math.max(0, Math.min(timersRef.current.length - 1, target));
+            if (target !== d.from) onReorderRef.current(d.from, target);
+            return null;
+          });
+          setTimeout(() => { justDragged.current = false; }, 60);
+        },
+      };
+      homeDragHandlers.current = h$;
+      document.addEventListener('pointermove',  h$.move);
+      document.addEventListener('pointerup',    h$.up);
+      document.addEventListener('pointercancel', h$.up);
+    }, 420);
   };
-  React.useEffect(() => () => { clearLP(); removePressListeners(); }, []);
+
+  React.useEffect(() => () => {
+    clearLP();
+    if (pressHandlers.current) {
+      document.removeEventListener('pointermove',  pressHandlers.current.move);
+      document.removeEventListener('pointerup',    pressHandlers.current.up);
+      document.removeEventListener('pointercancel', pressHandlers.current.up);
+    }
+    if (homeDragHandlers.current) {
+      document.removeEventListener('pointermove',  homeDragHandlers.current.move);
+      document.removeEventListener('pointerup',    homeDragHandlers.current.up);
+      document.removeEventListener('pointercancel', homeDragHandlers.current.up);
+    }
+  }, []);
 
   const rowOffset = (index) => {
     if (!drag) return 0;
@@ -751,31 +797,51 @@ function EditorScreen({ data, theme, editingTimer, onCancel, onSave, onDelete, c
   const [drag, setDrag] = React.useState(null);
   const dragRef = React.useRef({});
   const STRIDE = React.useRef(0);
+  const editorDragHandlers = React.useRef(null);
+  // Keep a ref to latest stages so drag-up closure always has current length
+  const stagesRef = React.useRef(stages);
+  stagesRef.current = stages;
 
   const beginDrag = (e, id, index) => {
     e.preventDefault(); setOpenRowId(null);
+    // Clean up any leftover listeners from a previous drag
+    if (editorDragHandlers.current) {
+      document.removeEventListener('pointermove', editorDragHandlers.current.move);
+      document.removeEventListener('pointerup',   editorDragHandlers.current.up);
+      document.removeEventListener('pointercancel', editorDragHandlers.current.up);
+    }
     const rowEl = e.currentTarget.closest('[data-stage-row]');
     const h = rowEl ? rowEl.getBoundingClientRect().height : 78;
     STRIDE.current = h + 12;
-    dragRef.current = { id, from: index, y0: (e.touches ? e.touches[0] : e).clientY };
+    dragRef.current = { id, from: index, y0: e.clientY };
     setDrag({ id, dy: 0, from: index });
     if (coachStep === 'drag') setDragSeen(true);
-    document.addEventListener('pointermove', onDragMove);
-    document.addEventListener('pointerup', onDragUp);
-  };
-  const onDragMove = (e) => { const dy = e.clientY - dragRef.current.y0; setDrag(d => d ? { ...d, dy } : d); };
-  const onDragUp = () => {
-    document.removeEventListener('pointermove', onDragMove);
-    document.removeEventListener('pointerup', onDragUp);
-    setDrag(d => {
-      if (!d) return null;
-      let target = d.from + Math.round(d.dy / (STRIDE.current || 80));
-      target = Math.max(0, Math.min(stages.length - 1, target));
-      if (target !== d.from) {
-        setStages(prev => { const arr = prev.slice(); const [m] = arr.splice(d.from, 1); arr.splice(target, 0, m); return arr; });
-      }
-      return null;
-    });
+    // Create handlers once per drag — same object ref used for both add and remove
+    const h$ = {
+      move: (ev) => {
+        const dy = ev.clientY - dragRef.current.y0;
+        setDrag(d => d ? { ...d, dy } : d);
+      },
+      up: () => {
+        document.removeEventListener('pointermove',  h$.move);
+        document.removeEventListener('pointerup',    h$.up);
+        document.removeEventListener('pointercancel', h$.up);
+        editorDragHandlers.current = null;
+        setDrag(d => {
+          if (!d) return null;
+          let target = d.from + Math.round(d.dy / (STRIDE.current || 80));
+          target = Math.max(0, Math.min(stagesRef.current.length - 1, target));
+          if (target !== d.from) {
+            setStages(prev => { const arr = prev.slice(); const [m] = arr.splice(d.from, 1); arr.splice(target, 0, m); return arr; });
+          }
+          return null;
+        });
+      },
+    };
+    editorDragHandlers.current = h$;
+    document.addEventListener('pointermove',  h$.move);
+    document.addEventListener('pointerup',    h$.up);
+    document.addEventListener('pointercancel', h$.up);
   };
 
   const rowOffset = (index) => {
