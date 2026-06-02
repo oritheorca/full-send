@@ -4,5 +4,5 @@
   <circle cx="256" cy="256" r="133" fill="none" stroke="#D6FB3D" stroke-width="36"
     stroke-linecap="round" stroke-dasharray="835" stroke-dashoffset="282"
     transform="rotate(-90 256 256)"/>
-  <path d="M266 184 L215 266 H256 L246 328 L297 246 H256 Z" fill="#FF5A3C"/>
+  <path d="M266 184 L215 266 H256 L246 328 L297 246 H256 Z" fill="#D6FB3D"/>
 </svg>

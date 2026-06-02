@@ -654,19 +654,28 @@ const LABEL_CHOICES = [
 ];
 
 function MinSec({ value, onChange }) {
+  const [editing, setEditing] = React.useState(false);
+  const [digits, setDigits] = React.useState('');
   const fmt = (v) => `${Math.floor(v / 60)}:${String(v % 60).padStart(2, '0')}`;
+  const parseDigits = (d) => {
+    if (!d) return 0;
+    const p = d.padStart(4, '0');
+    const m = Math.min(parseInt(p.slice(0, 2), 10), 99);
+    const s = Math.min(parseInt(p.slice(2), 10), 59);
+    return m * 60 + s;
+  };
+  const display = (editing && digits)
+    ? (() => { const p = digits.padStart(4, '0'); return `${p.slice(0, 2)}:${p.slice(2)}`; })()
+    : fmt(value);
   const handle = (raw) => {
-    const digits = raw.replace(/\D/g, '').slice(-4);
-    if (!digits) { onChange(0); return; }
-    const n = parseInt(digits, 10);
-    let m = Math.floor(n / 100), s = n % 100;
-    if (s > 59) s = 59;
-    if (m > 99) m = 99;
-    onChange(m * 60 + s);
+    const d = raw.replace(/\D/g, '').slice(-4);
+    setDigits(d);
+    onChange(parseDigits(d));
   };
   return (
-    <input type="text" inputMode="numeric" pattern="[0-9]*" value={fmt(value)}
-      onFocus={(e) => e.target.select()}
+    <input type="text" inputMode="numeric" pattern="[0-9]*" value={display}
+      onFocus={(e) => { setEditing(true); setDigits(''); e.target.select(); }}
+      onBlur={() => { setEditing(false); setDigits(''); }}
       onChange={(e) => handle(e.target.value)}
       style={{ width: '100%', boxSizing: 'border-box', textAlign: 'center', border: '1.5px solid var(--line-strong)', background: 'var(--surface-2)', color: 'var(--ink)', borderRadius: 14, padding: '14px 8px', outline: 'none', fontFamily: 'var(--font-display)', fontWeight: 700, fontSize: 34, letterSpacing: '0.01em', fontVariantNumeric: 'tabular-nums' }} />
   );
