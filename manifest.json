@@ -1,0 +1,19 @@
+{
+  "name": "Full Send",
+  "short_name": "Full Send",
+  "description": "Interval timer with multi-stage workouts",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#0C0F14",
+  "theme_color": "#0C0F14",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}
