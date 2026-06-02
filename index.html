@@ -557,7 +557,18 @@ function HomeScreen({ data, theme, onOpenTimer, onEditTimer, onNewTimer, onDelet
             if (target !== d.from) onReorderRef.current(d.from, target);
             return null;
           });
-          setTimeout(() => { justDragged.current = false; }, 60);
+          // Absorb the synthetic click that browsers fire after a touch drag
+          // (can arrive up to ~300ms after pointerup — well past the old 60ms timeout)
+          const absorbClick = (e) => {
+            e.stopPropagation();
+            document.removeEventListener('click', absorbClick, true);
+            justDragged.current = false;
+          };
+          document.addEventListener('click', absorbClick, true);
+          setTimeout(() => {
+            document.removeEventListener('click', absorbClick, true);
+            justDragged.current = false;
+          }, 600);
         },
       };
       homeDragHandlers.current = h$;
