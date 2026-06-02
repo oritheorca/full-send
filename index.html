@@ -856,6 +856,12 @@ function EditorScreen({ data, theme, editingTimer, onCancel, onSave, onDelete, c
           }
           return null;
         });
+        const absorbClick = (e) => {
+          e.stopPropagation();
+          document.removeEventListener('click', absorbClick, true);
+        };
+        document.addEventListener('click', absorbClick, true);
+        setTimeout(() => document.removeEventListener('click', absorbClick, true), 600);
       },
     };
     editorDragHandlers.current = h$;
